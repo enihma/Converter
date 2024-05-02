@@ -132,13 +132,11 @@ LRESULT CALLBACK App::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             {
                 this->onCloseButtonClicked();
             }
-            return 0;
 
             case ID_COLLAPSE_BUTTON:
             {
                 this->onCollapseButtonClicked();
             }
-            return 0;
 
             case ID_CONVERT_BUTTON:
             {
@@ -201,9 +199,10 @@ void App::onWindowPaint()
     HDC hdc = BeginPaint(this->hwnd, &ps);
     HFONT hFont_Arial = CreateFont(20, 0, 0, 0, FW_HEAVY, 0, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"Arial Black");
     RECT rect;
-
+    
     GetClientRect(this->hwnd, &rect);
     HBRUSH hWindowBrush = CreateSolidBrush(RGB(46, 46, 46));
+
 
     SetTextColor(hdc, RGB(255, 255, 255));
     SetBkColor(hdc, RGB(46, 46, 46));
@@ -219,8 +218,8 @@ void App::onWindowPaint()
     DeleteObject(hFont_Arial);
 
     EndPaint(this->hwnd, &ps);
-
-    HFONT hFont_Cascadia = CreateFont(27, 0, 0, 0, FW_REGULAR, 0, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"Cascadia Mono");
+    
+    HFONT hFont_Cascadia = CreateFont(27, 0, 0, 0, FW_REGULAR, 0, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"Arial");
 
     SendMessage(this->hFirstEdit, WM_SETFONT, (WPARAM)hFont_Cascadia, TRUE);
     SendMessage(this->hSecondEdit, WM_SETFONT, (WPARAM)hFont_Cascadia, TRUE);
@@ -237,8 +236,8 @@ void App::CreateNativeControls()
     hFirstEdit = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE, 100, 130, 220, 30, hwnd, NULL, NULL, NULL);
     hSecondEdit = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE, 100, 80, 220, 30, hwnd, NULL, NULL, NULL);
 
-    hFirstComboBox = CreateWindow(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | BS_OWNERDRAW | BS_FLAT, 20, 82, 55, 25, hwnd, NULL, NULL, NULL);
-    hSecondComboBox = CreateWindow(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | BS_OWNERDRAW | BS_FLAT, 20, 134, 55, 25, hwnd, NULL, NULL, NULL);
+    hFirstComboBox = CreateWindow(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | BS_OWNERDRAW | BS_FLAT, 20, 82, 55, 20, hwnd, NULL, NULL, NULL);
+    hSecondComboBox = CreateWindow(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | BS_OWNERDRAW | BS_FLAT, 20, 134, 55, 20, hwnd, NULL, NULL, NULL);
 }
 
 void App::DrawCloseButton(HDC hdc)

@@ -47,6 +47,8 @@ private:
 
 	void getItemsFromComboBox(HWND hComboBox, wchar_t** buffer);
 
+private:
+	void DrawWindowTitle();
 
 // Button press tracking
 private:
