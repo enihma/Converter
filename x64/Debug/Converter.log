@@ -1,0 +1,5 @@
+﻿  App.cpp
+C:\VSProjects\Converter\App.cpp(485,18): warning C4244: инициализация: преобразование "LRESULT" в "int", возможна потеря данных
+C:\VSProjects\Converter\App.cpp(494,21): warning C4244: инициализация: преобразование "LRESULT" в "int", возможна потеря данных
+C:\VSProjects\Converter\App.cpp(496,20): warning C4244: инициализация: преобразование "LRESULT" в "int", возможна потеря данных
+  Converter.vcxproj -> C:\VSProjects\Converter\x64\Debug\Converter.exe
