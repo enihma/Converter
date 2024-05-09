@@ -26,6 +26,7 @@ float Http::getCurrency(char* from, char* to)
         return result;
     }
 
+
     if (strcmp(from, "USD") == 0)
         objectName = const_cast<wchar_t*>(L"/v4/latest/USD");
     else if (strcmp(from, "RUB") == 0)
@@ -55,6 +56,8 @@ float Http::getCurrency(char* from, char* to)
         WinHttpCloseHandle(hSession);
         return result;
     }
+
+    statusConnect = true;
 
     DWORD dwSize = 0;
     DWORD dwDownloaded = 0;

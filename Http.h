@@ -8,6 +8,8 @@ public:
 	~Http();
 
 	float getCurrency(char* from, char* to);
+
+	bool statusConnect = false;
 private:
 	HINTERNET hSession;
 	HINTERNET hConnect;

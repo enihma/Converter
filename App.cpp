@@ -13,6 +13,7 @@ App::App()
     eurToUsd = http.getCurrency(const_cast<char*>("EUR"), const_cast<char*>("USD"));
     qarToUsd = http.getCurrency(const_cast<char*>("QAR"), const_cast<char*>("USD"));
     eurToQar = http.getCurrency(const_cast<char*>("EUR"), const_cast<char*>("QAR"));
+    statusConnect = http.statusConnect;
 }
 
 App::~App()
@@ -44,7 +45,7 @@ int App::Run(HINSTANCE hInst, int nCmdShow)
         WS_POPUP | WS_VISIBLE,
         100,
         100,
-        420,
+        395,
         300,
         NULL,
         NULL,
@@ -54,6 +55,10 @@ int App::Run(HINSTANCE hInst, int nCmdShow)
     if (!hwnd)
         return 1;
 
+    HFONT hFont_ArialBlack = CreateFont(19, 0, 0, 0, FW_REGULAR, 0, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"Arial Black");
+
+    SendMessage(this->hFirstComboBox, WM_SETFONT, (WPARAM)hFont_ArialBlack, MAKELPARAM(TRUE, 0));
+    SendMessage(this->hSecondComboBox, WM_SETFONT, (WPARAM)hFont_ArialBlack, MAKELPARAM(TRUE, 0));
 
     UpdateWindow(hwnd);
     ShowWindow(hwnd, nCmdShow);
@@ -66,6 +71,7 @@ int App::Run(HINSTANCE hInst, int nCmdShow)
         DispatchMessage(&msg);
     }
 
+    DeleteObject(hFont_ArialBlack);
     return static_cast<int>(msg.wParam);
 }
 
@@ -109,6 +115,7 @@ LRESULT CALLBACK App::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 this->bCollapseButtonPressed = false;
             this->DrawCollapseButton(pdis->hDC);
         }
+        return 0;
         case ID_CONVERT_BUTTON:
         {
             if (pdis->itemState & ODS_SELECTED)
@@ -197,103 +204,161 @@ void App::onWindowPaint()
 {
     PAINTSTRUCT ps;
     HDC hdc = BeginPaint(this->hwnd, &ps);
-    HFONT hFont_Arial = CreateFont(20, 0, 0, 0, FW_HEAVY, 0, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"Arial Black");
+
+    HFONT hFont_ArialBlack = CreateFont(20, 0, 0, 0, FW_HEAVY, 0, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"Arial Black");
+    HFONT hFont_ArialBlack_Title = CreateFont(25, 0, 0, 0, FW_HEAVY, 0, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"Arial Black");
+
+    HBRUSH hWindowBrush = CreateSolidBrush(RGB(46, 46, 46));
+    HBRUSH hTitleBrush = CreateSolidBrush(RGB(28, 28, 28));
+
     RECT rect;
     
     GetClientRect(this->hwnd, &rect);
-    HBRUSH hWindowBrush = CreateSolidBrush(RGB(46, 46, 46));
-
 
     SetTextColor(hdc, RGB(255, 255, 255));
     SetBkColor(hdc, RGB(46, 46, 46));
 
-    SelectObject(ps.hdc, hWindowBrush);
-    SelectObject(ps.hdc, hFont_Arial);
-    Rectangle(ps.hdc, rect.left, rect.top, rect.right, rect.bottom);
+    SelectObject(hdc, hWindowBrush);
+    SelectObject(hdc, hFont_ArialBlack);
+    Rectangle(hdc, rect.left, rect.top, rect.right, rect.bottom);
 
     TextOut(hdc, 20, 57, L"From", 4);
     TextOut(hdc, 20, 110, L"To", 4);
 
+    SetTextColor(hdc, RGB(38, 38, 38));
+    TextOut(hdc, 5, 275, L"C0D3D by: enihma", 18);
+
+    if (statusConnect)
+    {
+        SetTextColor(hdc, RGB(2, 186, 51));
+        TextOut(hdc, 250, 275, L"Status: SUCCESS", 16);
+    }
+    else
+    {
+        SetTextColor(hdc, RGB(181, 4, 4));
+        TextOut(hdc, 250, 275, L"Status: ERROR", 16);
+    }
+    // Title
+    SetTextColor(hdc, RGB(255, 255, 255));
+    SetBkColor(hdc, RGB(28, 28, 28));
+
+    SelectObject(hdc, hFont_ArialBlack_Title);
+    SelectObject(hdc, hTitleBrush);
+    Rectangle(hdc, rect.left, rect.top, rect.right, 35);
+    TextOut(hdc, 8, 4, L"Converter", 9);
+
     DeleteObject(hWindowBrush);
-    DeleteObject(hFont_Arial);
+    DeleteObject(hTitleBrush);
+    DeleteObject(hFont_ArialBlack);
+    DeleteObject(hFont_ArialBlack_Title);
 
     EndPaint(this->hwnd, &ps);
     
-    HFONT hFont_Cascadia = CreateFont(27, 0, 0, 0, FW_REGULAR, 0, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"Arial");
+    HFONT hFont_Arial = CreateFont(27, 0, 0, 0, FW_REGULAR, 0, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"Arial");
 
-    SendMessage(this->hFirstEdit, WM_SETFONT, (WPARAM)hFont_Cascadia, TRUE);
-    SendMessage(this->hSecondEdit, WM_SETFONT, (WPARAM)hFont_Cascadia, TRUE);
+    SendMessage(this->hFirstEdit, WM_SETFONT, (WPARAM)hFont_Arial, TRUE);
+    SendMessage(this->hSecondEdit, WM_SETFONT, (WPARAM)hFont_Arial, TRUE);
 
-    DeleteObject(hFont_Cascadia);
+    DeleteObject(hFont_Arial);
 }
+
 
 void App::CreateNativeControls()
 {
-    hCloseButton = CreateWindow(L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, 400, 5, 15, 15, hwnd, reinterpret_cast<HMENU>(this->ID_CLOSE_BUTTON), NULL, NULL);
-    hCollapseButton = CreateWindow(L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, 380, 5, 15, 15, hwnd, reinterpret_cast<HMENU>(this->ID_COLLAPSE_BUTTON), NULL, NULL);
+    hCloseButton = CreateWindow(L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, 375, 7, 15, 15, hwnd, reinterpret_cast<HMENU>(this->ID_CLOSE_BUTTON), NULL, NULL);
+    hCollapseButton = CreateWindow(L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, 355, 5, 15, 15, hwnd, reinterpret_cast<HMENU>(this->ID_COLLAPSE_BUTTON), NULL, NULL);
     hConvertButton = CreateWindow(L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, 100, 200, 220, 40, hwnd, reinterpret_cast<HMENU>(this->ID_CONVERT_BUTTON), NULL, NULL);
 
-    hFirstEdit = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE, 100, 130, 220, 30, hwnd, NULL, NULL, NULL);
-    hSecondEdit = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE, 100, 80, 220, 30, hwnd, NULL, NULL, NULL);
+    hFirstEdit = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE, 100, 133, 220, 28, hwnd, NULL, NULL, NULL);
+    hSecondEdit = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE, 100, 82, 220, 28, hwnd, NULL, NULL, NULL);
 
-    hFirstComboBox = CreateWindow(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | BS_OWNERDRAW | BS_FLAT, 20, 82, 55, 20, hwnd, NULL, NULL, NULL);
-    hSecondComboBox = CreateWindow(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | BS_OWNERDRAW | BS_FLAT, 20, 134, 55, 20, hwnd, NULL, NULL, NULL);
+    hFirstComboBox = CreateWindow(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | BS_OWNERDRAW, 20, 82, 55, 20, hwnd, NULL, NULL, NULL);
+    hSecondComboBox = CreateWindow(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | BS_OWNERDRAW, 20, 134, 55, 20, hwnd, NULL, NULL, NULL);
 }
 
 void App::DrawCloseButton(HDC hdc)
 {
-    RECT rc{ 0, 0, 15, 15 };
+    RECT rc{ 0, 0, 25, 25 };
+    HFONT hFont_ArialBlack = CreateFont(18, 0, 0, 0, FW_HEAVY, 0, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"Arial Black");
     HBRUSH bg;
 
     if (this->bCloseButtonPressed)
     {
-        bg = CreateSolidBrush(RGB(186, 2, 2));
-
+        bg = CreateSolidBrush(RGB(28, 28, 28));
 
         FillRect(hdc, &rc, bg);
 
-        DeleteObject(bg);
+        SetBkColor(hdc, RGB(28, 28, 28));
+        SetTextColor(hdc, RGB(200, 200, 200));
+        
+        SelectObject(hdc, hFont_ArialBlack);
+        TextOut(hdc, 0, 0, L"x", 1);
+        
 
+        DeleteObject(bg);
+        DeleteObject(hFont_ArialBlack);
     }
     else
     {
-        bg = CreateSolidBrush(RGB(235, 2, 2));
+        bg = CreateSolidBrush(RGB(28, 28, 28));
 
         FillRect(hdc, &rc, bg);
 
+        SetBkColor(hdc, RGB(28, 28, 28));
+        SetTextColor(hdc, RGB(255, 255, 255));
+
+        SelectObject(hdc, hFont_ArialBlack);
+        TextOut(hdc, 0, 0, L"x", 1);
+
         DeleteObject(bg);
+        DeleteObject(hFont_ArialBlack);
     }
 }
 
 void App::DrawCollapseButton(HDC hdc)
 {
-    RECT rc{ 0, 0, 15, 15 };
+    RECT rc{ 0, 0, 25, 25 };
+    HFONT hFont_ArialBlack = CreateFont(17, 0, 0, 0, FW_HEAVY, 0, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"Arial Black");
     HBRUSH bg;
 
     if (this->bCollapseButtonPressed)
     {
-        bg = CreateSolidBrush(RGB(44, 97, 46));
-
+        bg = CreateSolidBrush(RGB(28, 28, 28));
 
         FillRect(hdc, &rc, bg);
 
+        SetBkColor(hdc, RGB(28, 28, 28));
+        SetTextColor(hdc, RGB(200, 200, 200));
+
+        SelectObject(hdc, hFont_ArialBlack);
+        TextOut(hdc, 0, 0, L"_", 1);
+
+
         DeleteObject(bg);
+        DeleteObject(hFont_ArialBlack);
 
     }
     else
     {
-        bg = CreateSolidBrush(RGB(67, 156, 70));
+        bg = CreateSolidBrush(RGB(28, 28, 28));
 
         FillRect(hdc, &rc, bg);
 
+        SetBkColor(hdc, RGB(28, 28, 28));
+        SetTextColor(hdc, RGB(255, 255, 255));
+
+        SelectObject(hdc, hFont_ArialBlack);
+        TextOut(hdc, 0, 0, L"_", 1);
+
         DeleteObject(bg);
+        DeleteObject(hFont_ArialBlack);
     }
 }
 
 void App::DrawConvertButton(HDC hdc)
 {
     RECT rc{ 0, 0, 220, 40 };
-    HFONT hFont_Cascadia = CreateFont(30, 0, 0, 0, FW_REGULAR, 0, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"Cascadia Mono");
+    HFONT hFont_Arial = CreateFont(30, 0, 0, 0, FW_REGULAR, 0, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"Arial Black");
     HBRUSH bg;
 
     if (this->bConvertButtonPressed)
@@ -304,12 +369,12 @@ void App::DrawConvertButton(HDC hdc)
 
         SetBkColor(hdc, RGB(44, 97, 46));
         SetTextColor(hdc, RGB(255, 255, 255));
-        SelectObject(hdc, hFont_Cascadia);
+        SelectObject(hdc, hFont_Arial);
 
-        TextOut(hdc, 65, 3, L"Convert", 7);
+        TextOut(hdc, 63, 3, L"Convert", 7);
 
         DeleteObject(bg);
-        DeleteObject(hFont_Cascadia);
+        DeleteObject(hFont_Arial);
     }
     else
     {
@@ -319,12 +384,12 @@ void App::DrawConvertButton(HDC hdc)
 
         SetBkColor(hdc, RGB(67, 156, 70));
         SetTextColor(hdc, RGB(255, 255, 255));
-        SelectObject(hdc, hFont_Cascadia);
+        SelectObject(hdc, hFont_Arial);
 
-        TextOut(hdc, 65, 3, L"Convert", 7);
+        TextOut(hdc, 63, 3, L"Convert", 7);
 
         DeleteObject(bg);
-        DeleteObject(hFont_Cascadia);
+        DeleteObject(hFont_Arial);
     }
 }
 
@@ -390,8 +455,12 @@ void App::onConvertButtonClicked()
         if (wcscmp(getFirstComboBoxValue, L"EUR") == 0 && wcscmp(getSecondComboBoxValue, L"QAR") == 0)
             result = num2 * this->eurToQar;
 
+        std::wstring resultString;
 
-        std::wstring resultString = std::to_wstring(result);
+        if (result == 0.0f)
+            resultString = L"invalid data!";
+        else
+            resultString = std::to_wstring(result);
 
         SetWindowText(this->hFirstEdit, resultString.c_str());
 
